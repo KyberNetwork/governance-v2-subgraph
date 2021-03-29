@@ -1,64 +1,40 @@
-version: '3.5'
-
-volumes:
-  graph_pg_data:
-    driver: local
-  graph_ipfs_data:
-    driver: local
-
-x-graph-pg-base: &graph-pg-base
-  POSTGRES_USER: graph-node
-  POSTGRES_PASSWORD: let-me-in
-  POSTGRES_DB: graph-node
-  postgres_user: graph-node
-  postgres_pass: let-me-in
-  postgres_db: graph-node
-
+version: '3'
 services:
-  thegraph-env:
-    image: node:11
-    depends_on:
-      - graph-node
-    working_dir: /src
-    volumes:
-      - ./:/src
-    restart: always
-    command: npm run dev-environment
-    environment:
-      TARGET: "dev"
-      GANACHE_URL: "http://ganache:8545"
-
   graph-node:
     image: graphprotocol/graph-node
-    depends_on:
-      - graph-postgres
-      - graph-ipfs
     ports:
       - "8000:8000"
       - "8001:8001"
       - "8020:8020"
-    restart: always
+      - "8030:8030"
+      - "8040:8040"
+    depends_on:
+      - graph-ipfs
+      - graph-postgres
     environment:
-      <<: *graph-pg-base
-      postgres_host: "graph-postgres:5432"
-      ipfs: "graph-ipfs:5001"
-      RUST_LOG: "info"
-
+      postgres_host: graph-postgres
+      postgres_user: graph-node
+      postgres_pass: let-me-in
+      postgres_db: graph-node
+      ipfs: 'graph-ipfs:5001'
+      ethereum: "${HOST}"
+      RUST_LOG: error
+      GRAPH_LOG: debug
   graph-ipfs:
     image: ipfs/go-ipfs:v0.4.23
-    restart: always
+    ports:
+      - '5001:5001'
     volumes:
-      - type: volume
-        source: graph_ipfs_data
-        target: /data/ipfs
-
+      - ./data/ipfs:/data/ipfs
   graph-postgres:
     image: postgres
+    restart: always
+    ports:
+      - '5432:5432'
     command: ["postgres", "-cshared_preload_libraries=pg_stat_statements"]
     environment:
-      <<: *graph-pg-base
+      POSTGRES_USER: graph-node
+      POSTGRES_PASSWORD: let-me-in
+      POSTGRES_DB: graph-node
     volumes:
-      - type: volume
-        source: graph_pg_data
-        target: /var/lib/postgresql/data
-
+      - ./data/postgres:/var/lib/postgresql/data

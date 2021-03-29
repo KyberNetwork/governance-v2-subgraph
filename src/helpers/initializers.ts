@@ -1,46 +1,26 @@
-import { Bytes } from '@graphprotocol/graph-ts';
-import {
-  Proposal
-} from '../../generated/schema';
-import {
-  zeroAddress,
-  zeroBI,
-} from '../utils/converters';
-import { NA } from '../utils/constants';
+import { Proposal, Vote } from '../../generated/schema';
+import { log } from '@graphprotocol/graph-ts/index';
 
-export function getOrInitProposal(proposalId: string): Proposal {
+export function getOrInitProposal (proposalId: string): Proposal {
   let proposal = Proposal.load(proposalId);
-
   if (!proposal) {
     proposal = new Proposal(proposalId);
-    proposal.title = NA;
-    proposal.shortDescription = NA;
-    proposal.creator = Bytes.fromI32(0) as Bytes;
-    proposal.executor = NA;
-    proposal.targets = [Bytes.fromI32(0) as Bytes];
-    proposal.values = [zeroBI()];
-    proposal.signatures = [NA];
-    proposal.calldatas = [Bytes.fromI32(0) as Bytes];
-    proposal.withDelegatecalls = [false];
-    proposal.startBlock = zeroBI();
-    proposal.endBlock = zeroBI();
-    proposal.governanceStrategy = Bytes.fromI32(0) as Bytes;
-    proposal.currentNoVote = zeroBI();
-    proposal.currentYesVote = zeroBI();
-    proposal.winner = NA;
-    proposal.createdTimestamp = zeroBI().toI32();
-    proposal.lastUpdateBlock = zeroBI();
-    proposal.lastUpdateTimestamp = zeroBI().toI32();
-    proposal.ipfsHash = NA;
-    proposal.govContract = zeroAddress();
-    proposal.totalPropositionSupply = zeroBI();
-    proposal.totalVotingSupply = zeroBI();
-    proposal.createdBlockNumber = zeroBI();
-    proposal.totalCurrentVoters = 0;
-    proposal.author = NA;
-    proposal.discussions = NA;
-    proposal.aipNumber = zeroBI();
   }
+  return proposal!;
+}
 
-  return proposal as Proposal;
+export function getProposal (proposalId: string, fn: string): Proposal {
+  let proposal = Proposal.load(proposalId);
+  if (proposal == null) {
+    log.critical('{}: invalid proposal id {}', [fn, proposalId]);
+  }
+  return proposal!;
+}
+
+export function getVote (voteId: string, fn: string): Vote {
+  let vote = Vote.load(voteId);
+  if (vote == null) {
+    log.critical('{}: invalid vote id {}', [fn, voteId]);
+  }
+  return vote!;
 }

@@ -1,5 +1,5 @@
 {
   "network": "ropsten",
-  "aaveGovernanceV2Address": "0x0000000000000000000000000000000000000000",
-  "aaveGovernanceV2StartBlock": 1
+  "kyberGovernanceAddress": "0xef5a1404e312078cd16b7139a2257ed3bb42f787",
+  "kyberGovernanceStartBlock": 9853106
 }
