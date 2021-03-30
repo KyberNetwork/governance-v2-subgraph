@@ -1,6 +1,6 @@
-import { Bytes, log, BigInt } from '@graphprotocol/graph-ts/index';
+import { Bytes, BigInt } from '@graphprotocol/graph-ts/index';
 
-import { Proposal, Vote, Executor } from '../../generated/schema';
+import { Vote, Executor } from '../../generated/schema';
 import {
   BinaryProposalCreated,
   GenericProposalCreated,
@@ -24,6 +24,7 @@ export function handleBinaryProposalCreated (event: BinaryProposalCreated): void
   proposal.options = [YES_OPTION, NO_OPTION];
   proposal.voteCounts = [new BigInt(0), new BigInt(0)];
   proposal.totalVotes = new BigInt(0);
+  proposal.totalAddresses = new BigInt(0);
   proposal.creator = event.params.creator;
   proposal.votingPowerStrategy = event.params.strategy;
   proposal.executor = event.params.executor.toHexString();
@@ -53,6 +54,7 @@ export function handleGenericProposalCreated (event: GenericProposalCreated): vo
     proposal.voteCounts.push(new BigInt(0));
   }
   proposal.totalVotes = new BigInt(0);
+  proposal.totalAddresses = new BigInt(0);
   proposal.creator = event.params.creator;
   proposal.votingPowerStrategy = event.params.strategy;
   proposal.executor = event.params.executor.toHexString();
@@ -106,6 +108,7 @@ export function handleVoteEmitted (event: VoteEmitted): void {
   if (vote == null) {
     vote = new Vote(id);
     proposal.totalVotes = proposal.totalVotes.plus(event.params.votingPower);
+    proposal.totalAddresses = proposal.totalAddresses.plus(ONE_BI);
   } else {
     preVoteOptions = vote.voteOptions;
   }
@@ -132,8 +135,8 @@ export function handleVoteEmitted (event: VoteEmitted): void {
     }
   }
   proposal.voteCounts = newVoteCounts;
-
   proposal.state = 'Active';
+  proposal.lastUpdateBlock = event.block.number;
   proposal.lastUpdateTimestamp = event.block.timestamp;
   proposal.save();
 
@@ -152,15 +155,6 @@ export function handleExecutorAuthorized (event: ExecutorAuthorized): void {
   } else {
     executor = new Executor(event.params.executor.toHexString());
     executor.authorized = true;
-    // let executorContract = IExecutorW.bind(event.params.executor);
-    // executor.propositionThreshold = executorContract.PROPOSITION_THRESHOLD();
-    // executor.votingDuration = executorContract.VOTING_DURATION();
-    // executor.voteDifferential = executorContract.VOTE_DIFFERENTIAL();
-    // executor.gracePeriod = executorContract.GRACE_PERIOD();
-    // executor.minimumQuorum = executorContract.MINIMUM_QUORUM();
-    // executor.executionDelay = executorContract.getDelay();
-    // executor.admin = executorContract.getAdmin();
-    // executor.pendingAdmin = executorContract.getPendingAdmin();
     executor.authorizationBlock = event.block.number;
     executor.authorizationTimestamp = event.block.timestamp;
   }

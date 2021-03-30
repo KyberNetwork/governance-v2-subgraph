@@ -1,39 +1,38 @@
-# Subgraph for Aave Protocol V2
+# Subgraph for Kyber Governance
 
 ## Development
 
 ```bash
 # copy env and adjust its content
 cp .env.test .env
-# fetch current contracts as submodule
-npm run prepare:all
+# choose env to deploy to
+NETWORK=ropsten yarn prepare:subgraph
 # run codegen
-npm run subgraph:codegen
-# now you're able to deploy to thegraph via
-npm run deploy:hosted:mainnet
-
+yarn codegen
+# build
+yarn build
 ```
 
-## Deployment
+## Deployment local
 
-To be able to deploy the subgraph in any environment for any network first we will need to prepare the local env:
+In the 1st terminal, start a graph node at local (you also need to config a node in .env file).
 
-- get the governance v2 contracts and compile them:
-You will need GITLAB_ACCESS_TOKEN to be able t install governance v2 repo dependencies
-
-```
-npm run prepare:contracts
+```bash
+docker-compose up
 ```
 
+In the 2nd terminal, create and deploy subgraph.
 
-### Hosted
-
-To be able to deploy to the hosted solution you will need to create a .env file and add `ACCESS_TOKEN` environment variable. You can find this in the dashboard of the TheGraph
-
+```bash
+yarn create-local
+yarn deploy-local
 ```
-// For Kovan:
-npm run deploy:hosted:kovan
 
-// For Mainnet:
-npm run deploy:hosted:mainnet
+### Deployment to the graph api
+
+```bash
+#auth
+yarn graph auth ....
+# deploy
+yarn deploy
 ```
