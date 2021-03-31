@@ -1,8 +1,18 @@
+#nodejs libs
 node_modules/
-build/
-dist/
+
+# ide files
 .idea
 .vscode
+
+#env file
 .env
 subgraph.yaml
+
+# build file
 generated/
+build/
+dist/
+
+# data for local graphql node
+data/

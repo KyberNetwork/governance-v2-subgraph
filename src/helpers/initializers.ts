@@ -1,46 +1,51 @@
-import { Bytes } from '@graphprotocol/graph-ts';
-import {
-  Proposal
-} from '../../generated/schema';
-import {
-  zeroAddress,
-  zeroBI,
-} from '../utils/converters';
-import { NA } from '../utils/constants';
+import { Governance, Proposal, User, Vote } from '../../generated/schema';
+import { log, Address } from '@graphprotocol/graph-ts/index';
+import { KYBER_VER3 } from '../utils/constants';
+import { ZERO_BI } from '../utils/converters';
+import { KyberStaking } from '../../generated/KyberDaoV2/KyberStaking';
 
-export function getOrInitProposal(proposalId: string): Proposal {
+export function getOrInitProposal (proposalId: string): Proposal {
   let proposal = Proposal.load(proposalId);
-
   if (!proposal) {
     proposal = new Proposal(proposalId);
-    proposal.title = NA;
-    proposal.shortDescription = NA;
-    proposal.creator = Bytes.fromI32(0) as Bytes;
-    proposal.executor = NA;
-    proposal.targets = [Bytes.fromI32(0) as Bytes];
-    proposal.values = [zeroBI()];
-    proposal.signatures = [NA];
-    proposal.calldatas = [Bytes.fromI32(0) as Bytes];
-    proposal.withDelegatecalls = [false];
-    proposal.startBlock = zeroBI();
-    proposal.endBlock = zeroBI();
-    proposal.governanceStrategy = Bytes.fromI32(0) as Bytes;
-    proposal.currentNoVote = zeroBI();
-    proposal.currentYesVote = zeroBI();
-    proposal.winner = NA;
-    proposal.createdTimestamp = zeroBI().toI32();
-    proposal.lastUpdateBlock = zeroBI();
-    proposal.lastUpdateTimestamp = zeroBI().toI32();
-    proposal.ipfsHash = NA;
-    proposal.govContract = zeroAddress();
-    proposal.totalPropositionSupply = zeroBI();
-    proposal.totalVotingSupply = zeroBI();
-    proposal.createdBlockNumber = zeroBI();
-    proposal.totalCurrentVoters = 0;
-    proposal.author = NA;
-    proposal.discussions = NA;
-    proposal.aipNumber = zeroBI();
   }
+  return proposal!;
+}
 
-  return proposal as Proposal;
+export function getProposal (proposalId: string, fn: string): Proposal {
+  let proposal = Proposal.load(proposalId);
+  if (proposal == null) {
+    log.critical('{}: invalid proposal id {}', [fn, proposalId]);
+  }
+  return proposal!;
+}
+
+export function getVote (voteId: string, fn: string): Vote {
+  let vote = Vote.load(voteId);
+  if (vote == null) {
+    log.critical('{}: invalid vote id {}', [fn, voteId]);
+  }
+  return vote!;
+}
+
+export function initOrGetGovernance (stakingAddress: Address): Governance {
+  let governance = Governance.load(KYBER_VER3);
+  if (governance == null) {
+    governance = new Governance(KYBER_VER3);
+    let stakingContract = KyberStaking.bind(stakingAddress);
+    governance.epochPeriod = stakingContract.epochPeriodInSeconds();
+    governance.startTime = stakingContract.firstEpochStartTime();
+    governance.totalStaked = ZERO_BI;
+    governance.totalStaker = ZERO_BI;
+  }
+  return governance!;
+}
+
+export function initStaker (stakerAddress: Address): User {
+  let staker = new User(stakerAddress.toHexString());
+  staker.representative = stakerAddress;
+  staker.stake = ZERO_BI;
+  staker.delegatedStake = ZERO_BI;
+
+  return staker;
 }

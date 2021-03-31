@@ -1,0 +1,12 @@
+language: node_js
+node_js:
+  - 10
+
+install:
+  - yarn install
+
+script:
+  - NETWORK=ropsten yarn prepare:subgraph
+  - yarn codegen
+  - yarn build
+  

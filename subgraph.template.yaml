@@ -5,12 +5,12 @@ schema:
   file: ./schema.graphql
 dataSources:
   - kind: ethereum/contract
-    name: AaveGovernanceV2
+    name: KyberDaoV2
     network: {{network}}
     source:
-      abi: AaveGovernanceV2
-      address: '{{aaveGovernanceV2Address}}'
-      startBlock: {{aaveGovernanceV2StartBlock}}
+      abi: KyberGovernance
+      address: '{{kyberGovernanceAddress}}'
+      startBlock: {{kyberGovernanceStartBlock}}
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.4
@@ -20,25 +20,50 @@ dataSources:
         - Vote
         - Executor
       abis:
-        - name: AaveGovernanceV2
-          file: ./externals/governance-v2/artifacts/contracts/governance/AaveGovernanceV2.sol/AaveGovernanceV2.json
-        - name: IExecutor
-          file: ./externals/governance-v2/artifacts/contracts/governance/Executor.sol/Executor.json
-        - name: GovernanceStrategy
-          file: ./externals/governance-v2/artifacts/contracts/governance/GovernanceStrategy.sol/GovernanceStrategy.json
+        - name: KyberGovernance
+          file: ./abi/IKyberGovernance.json
+        - name: ExecutorWithTimelock
+          file: ./abi/IExecutorWithTimelock.json
+        - name: KyberStaking
+          file: ./abi/IKyberStaking.json
       eventHandlers:
-        - event: ProposalCreated(uint256,indexed address,indexed address,address[],uint256[],string[],bytes[],bool[],uint256,uint256,address,bytes32)
-          handler: handleProposalCreated
+        - event: BinaryProposalCreated(uint256,indexed address,indexed address,indexed address,address[],uint256[],string[],bytes[],bool[],uint256,uint256,string,uint256)
+          handler: handleBinaryProposalCreated
+        - event: GenericProposalCreated(uint256,indexed address,indexed address,indexed address,string[],uint256,uint256,string,uint256)
+          handler: handleGenericProposalCreated
         - event: ProposalCanceled(uint256)
           handler: handleProposalCanceled
-        - event: ProposalQueued(uint256,uint256,indexed address)
+        - event: ProposalQueued(indexed uint256,uint256,indexed address)
           handler: handleProposalQueued
         - event: ProposalExecuted(uint256,indexed address)
           handler: handleProposalExecuted
-        - event: VoteEmitted(uint256,indexed address,bool,uint256)
+        - event: VoteEmitted(indexed uint256,indexed address,indexed uint32,uint224)
           handler: handleVoteEmitted
-        - event: ExecutorAuthorized(address)
+        - event: ExecutorAuthorized(indexed address)
           handler: handleExecutorAuthorized
-        - event: ExecutorUnauthorized(address)
+        - event: ExecutorUnauthorized(indexed address)
           handler: handleExecutorUnauthorized
+        - event: VotingPowerChanged(indexed uint256,indexed address,indexed uint32,uint224,uint224)
+          handler: handleVotingPowerChanged
       file: ./src/mapping/governance.ts
+  - kind: ethereum/contract
+    name: Kyber Staking
+    network: {{network}}
+    source:
+      abi: KyberStaking
+      address: '{{kyberStakingAddress}}'
+      startBlock: {{kyberGovernanceStartBlock}}
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.4
+      language: wasm/assemblyscript
+      entities:
+        - Governance
+        - User
+      abis:
+        - name: KyberStaking
+          file: ./abi/IKyberStaking.json
+      eventHandlers:
+        - event: Deposited(uint256,indexed address,uint256)
+          handler: handleDeposit
+      file: ./src/mapping/staking.ts

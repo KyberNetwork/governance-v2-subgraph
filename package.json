@@ -1,23 +1,16 @@
 {
   "name": "governance-v2-subgraph",
   "version": "1.0.0",
-  "description": "This package contains governance subgraph for the Aave Governance V2",
+  "description": "This package contains governance subgraph for the Kyber Governance",
   "scripts": {
     "dev-environment": "npm i && tail -f /dev/null",
-    "build": "graph build",
     "prepare:all": "npm run prepare:contracts && npm run prepare:subgraph",
-    "prepare:subgraph": "cat ./config/${NETWORK:-dev}.json | mustache  - subgraph.template.yaml > subgraph.yaml",
-    "prepare:contracts": "rm -rf externals && npm run submodule:get && npm run submodule:compile-contracts",
-    "submodule:get": "git submodule add -f https://github.com/aave/governance-v2.git externals/governance-v2 && npm run submodule:install",
-    "submodule:install": "npm run submodule:npmi",
-    "submodule:load": "git submodule foreach npm run load:npm",
-    "submodule:npmi": "git submodule foreach npm install",
-    "submodule:compile-contracts": "git submodule foreach npm run compile",
-    "subgraph:codegen": "graph codegen --output-dir ./generated",
-    "subgraph:build": "graph build",
-    "subgraph:deploy:hosted": "graph deploy $SLUG --ipfs https://api.thegraph.com/ipfs/ --node https://api.thegraph.com/deploy/ --access-token $ACCESS_TOKEN",
-    "deploy:hosted:kovan": "NETWORK=kovan env-cmd npm run prepare:subgraph && SLUG=aave/governance-v2-kovan env-cmd npm run subgraph:deploy:hosted",
-    "deploy:hosted:mainnet": "NETWORK=mainnet env-cmd npm run prepare:subgraph && SLUG=aave/governance-v2 env-cmd npm run subgraph:deploy:hosted"
+    "prepare:subgraph": "cat ./config/${NETWORK}.json | mustache  - subgraph.template.yaml > subgraph.yaml",
+    "codegen": "graph codegen --output-dir ./generated",
+    "build": "graph build",
+    "deploy": "graph deploy ducquangkstn/kyber_governance --ipfs https://api.thegraph.com/ipfs/ --node https://api.thegraph.com/deploy/ --debug",
+    "create-local": "graph create ducquangkstn/kyber_governance --node http://127.0.0.1:8020",
+    "deploy-local": "graph deploy ducquangkstn/kyber_governance --debug --ipfs http://localhost:5001 --node http://127.0.0.1:8020"
   },
   "repository": {
     "type": "git",
@@ -44,15 +37,15 @@
   },
   "devDependencies": {
     "@graphprotocol/graph-cli": "^0.18.0",
-    "@graphprotocol/graph-ts": "^0.18.1",
-    "env-cmd": "^10.1.0",
-    "mustache": "^3.1.0",
-    "typescript": "3.5.3",
+    "@graphprotocol/graph-ts": "^0.20.0",
     "@typescript-eslint/eslint-plugin": "^2.0.0",
     "@typescript-eslint/parser": "^2.0.0",
+    "env-cmd": "^10.1.0",
     "eslint": "^6.2.2",
     "eslint-config-prettier": "^6.1.0",
     "lint-staged": "^9.2.5",
-    "prettier": "^1.18.2"
+    "mustache": "^3.1.0",
+    "prettier": "^1.18.2",
+    "typescript": "3.5.3"
   }
 }

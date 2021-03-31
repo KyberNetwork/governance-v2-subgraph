@@ -1,87 +1,142 @@
 enum ProposalState {
   Pending
+  Canceled
   Active
   Succeeded
   Failed
-  Canceled
   Queued
+  Expired
   Executed
+  Finalized
 }
 
-enum Winner {
-  Yes
-  No
-  Abstain
-  Na
+enum ProposalType {
+  Generic
+  Binary
+}
+
+type Governance @entity {
+  id: ID!
+  epochPeriod: BigInt!
+  startTime: BigInt!
+  totalStaker: BigInt!
+  totalStaked: BigInt!
+}
+
+type Epoch @entity {
+  id: ID!
+  totalVotingPoint: BigInt!
+}
+
+type User @entity {
+  id: ID!
+
+  representative: Bytes!
+  stake: BigInt!
+  delegatedStake: BigInt!
+
+  deposits: [DepositEvent!]! @derivedFrom(field: "staker")
+  withdraws: [WithdrawEvent!]! @derivedFrom(field: "staker")
+  delegates: [DelegateEvent!]! @derivedFrom(field: "staker")
+  votes: [VoteEvent!]! @derivedFrom(field: "staker")
+}
+
+type Transaction @entity {
+  id: ID! # txn hash
+  blockNumber: BigInt!
+  timestamp: BigInt!
+  # This is not the reverse of Mint.transaction; it is only used to
+  # track incomplete mints (similar for burns and swaps)
+   deposits: [DepositEvent!]!
+  withdraws: [WithdrawEvent!]!
+  delegates: [DelegateEvent!]! 
+  votes: [VoteEvent!]!
+}
+
+type DepositEvent @entity {
+  id: ID!
+  timestamp: BigInt!
+  epoch: BigInt!
+  txHash: String!
+  staker: User!
+  amount: BigInt!
+}
+
+type WithdrawEvent @entity {
+  id: ID!
+  timestamp: BigInt!
+  epoch: BigInt!
+  txHash: String!
+  staker: User!
+  amount: BigInt!
+}
+
+type DelegateEvent @entity {
+  id: ID!
+  timestamp: BigInt!
+  epoch: BigInt!
+  txHash: String!
+  staker: User!
+  representative: Bytes!
+}
+
+type VoteEvent @entity {
+  id: ID!
+  timestamp: BigInt!
+  txHash: String!
+  staker: User!
+  proposal: Proposal!
+  "epoch: BigInt!"
+  voteOptions: BigInt!
 }
 
 type Executor @entity {
   id: ID!
   authorized: Boolean!
-  propositionThreshold: BigInt!
-  votingDuration: BigInt!
-  voteDifferential: BigInt!
-  minimumQuorum: BigInt!
-  gracePeriod: BigInt!
-  executionDelay: BigInt!
-  admin: Bytes!
+
   authorizationBlock: BigInt!
   authorizationTimestamp: BigInt!
-  pendingAdmin: Bytes
 }
 
 type Proposal @entity {
-  """
-  proposal id
-  """
   id: ID!
+  type: ProposalType!
   state: ProposalState!
-  ipfsHash: String!
   creator: Bytes!
   executor: Executor
+  votingPowerStrategy: Bytes!
+  startTime: BigInt!
+  endTime: BigInt!
+  maxVotingPower: BigInt!
+  link: String!
+
   targets: [Bytes!]
   values: [BigInt!]
   signatures: [String!]
   calldatas: [Bytes!]
   withDelegatecalls: [Boolean!]
-  startBlock: BigInt!
-  endBlock: BigInt!
-  governanceStrategy: Bytes!
-  currentYesVote: BigInt!
-  currentNoVote: BigInt!
-  winner: Winner!
+  "generic proposal options"
+  options: [String!]
+  
+  "vote data"
+  voteCounts: [BigInt!]
+  totalVotes: BigInt
   votes: [Vote!]! @derivedFrom(field: "proposal")
-  createdTimestamp: Int!
+  totalAddresses: BigInt!
+
   executionTime: BigInt
   initiatorQueueing: Bytes
   initiatorExecution: Bytes
-  lastUpdateTimestamp: Int!
+
   lastUpdateBlock: BigInt!
-  title: String!
-  shortDescription: String!
-  govContract: Bytes!
-  totalPropositionSupply: BigInt!
-  totalVotingSupply: BigInt!
-  createdBlockNumber: BigInt!
-  totalCurrentVoters: Int!
-  aipNumber: BigInt!
-  author: String!
-  discussions: String!
-  # voteBlock: BigInt!
-  # validateTimestamp: Int!
-  # validateBlock: BigInt!
-  # executeTimestamp: Int!
-  # executeBlock: BigInt!
+  lastUpdateTimestamp: BigInt!
 }
 
 type Vote @entity {
-  """
-   voter:proposalid
-  """
   id: ID!
   proposal: Proposal!
   voter: Bytes!
-  support: Boolean!
+  voteOptions: BigInt!
   votingPower: BigInt!
   timestamp: Int!
 }
