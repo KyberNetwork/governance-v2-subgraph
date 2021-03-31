@@ -1,6 +1,6 @@
 import { Bytes, BigInt } from '@graphprotocol/graph-ts/index';
 
-import { Vote, Executor } from '../../generated/schema';
+import { Vote, Executor, Transaction, VoteEvent } from '../../generated/schema';
 import {
   BinaryProposalCreated,
   GenericProposalCreated,
@@ -146,6 +146,30 @@ export function handleVoteEmitted (event: VoteEmitted): void {
   vote.votingPower = event.params.votingPower;
   vote.timestamp = event.block.timestamp.toI32();
   vote.save();
+
+  let txHash = event.transaction.hash.toHexString();
+  let transaction = Transaction.load(txHash);
+  if (transaction == null) {
+    transaction = new Transaction(txHash);
+    transaction.blockNumber = event.block.number;
+    transaction.timestamp = event.block.timestamp;
+    transaction.deposits = [];
+    transaction.withdraws = [];
+    transaction.delegates = [];
+    transaction.votes = [];
+  }
+
+  let voteIndex = BigInt.fromI32(transaction.votes.length);
+  let voteEvent = new VoteEvent(txHash.concat('-').concat(voteIndex.toString()));
+  voteEvent.staker = event.params.voter.toHexString();
+  voteEvent.timestamp = event.block.timestamp;
+  voteEvent.proposal = proposal.id;
+  voteEvent.voteOptions = event.params.voteOptions;
+  voteEvent.txHash = txHash;
+  voteEvent.save();
+
+  transaction.votes = transaction.votes.concat([voteEvent.id]);
+  transaction.save();
 }
 
 export function handleExecutorAuthorized (event: ExecutorAuthorized): void {

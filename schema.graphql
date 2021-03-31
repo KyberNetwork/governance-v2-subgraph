@@ -15,19 +15,87 @@ enum ProposalType {
   Binary
 }
 
+type Governance @entity {
+  id: ID!
+  epochPeriod: BigInt!
+  startTime: BigInt!
+  totalStaker: BigInt!
+  totalStaked: BigInt!
+}
+
+type Epoch @entity {
+  id: ID!
+  totalVotingPoint: BigInt!
+}
+
+type User @entity {
+  id: ID!
+
+  representative: Bytes!
+  stake: BigInt!
+  delegatedStake: BigInt!
+
+  deposits: [DepositEvent!]! @derivedFrom(field: "staker")
+  withdraws: [WithdrawEvent!]! @derivedFrom(field: "staker")
+  delegates: [DelegateEvent!]! @derivedFrom(field: "staker")
+  votes: [VoteEvent!]! @derivedFrom(field: "staker")
+}
+
+type Transaction @entity {
+  id: ID! # txn hash
+  blockNumber: BigInt!
+  timestamp: BigInt!
+  # This is not the reverse of Mint.transaction; it is only used to
+  # track incomplete mints (similar for burns and swaps)
+   deposits: [DepositEvent!]!
+  withdraws: [WithdrawEvent!]!
+  delegates: [DelegateEvent!]! 
+  votes: [VoteEvent!]!
+}
+
+type DepositEvent @entity {
+  id: ID!
+  timestamp: BigInt!
+  epoch: BigInt!
+  txHash: String!
+  staker: User!
+  amount: BigInt!
+}
+
+type WithdrawEvent @entity {
+  id: ID!
+  timestamp: BigInt!
+  epoch: BigInt!
+  txHash: String!
+  staker: User!
+  amount: BigInt!
+}
+
+type DelegateEvent @entity {
+  id: ID!
+  timestamp: BigInt!
+  epoch: BigInt!
+  txHash: String!
+  staker: User!
+  representative: Bytes!
+}
+
+type VoteEvent @entity {
+  id: ID!
+  timestamp: BigInt!
+  txHash: String!
+  staker: User!
+  proposal: Proposal!
+  "epoch: BigInt!"
+  voteOptions: BigInt!
+}
+
 type Executor @entity {
   id: ID!
   authorized: Boolean!
-  propositionThreshold: BigInt
-  votingDuration: BigInt
-  voteDifferential: BigInt
-  minimumQuorum: BigInt
-  gracePeriod: BigInt
-  executionDelay: BigInt
-  admin: Bytes
+
   authorizationBlock: BigInt!
   authorizationTimestamp: BigInt!
-  pendingAdmin: Bytes
 }
 
 type Proposal @entity {
@@ -47,16 +115,14 @@ type Proposal @entity {
   signatures: [String!]
   calldatas: [Bytes!]
   withDelegatecalls: [Boolean!]
-  """
-  Generic fields
-  """
+  "generic proposal options"
   options: [String!]
-  """
-  Vote fields
-  """
+  
+  "vote data"
   voteCounts: [BigInt!]
   totalVotes: BigInt
   votes: [Vote!]! @derivedFrom(field: "proposal")
+  totalAddresses: BigInt!
 
   executionTime: BigInt
   initiatorQueueing: Bytes

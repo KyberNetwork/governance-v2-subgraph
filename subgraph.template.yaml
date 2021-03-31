@@ -46,3 +46,24 @@ dataSources:
         - event: VotingPowerChanged(indexed uint256,indexed address,indexed uint32,uint224,uint224)
           handler: handleVotingPowerChanged
       file: ./src/mapping/governance.ts
+  - kind: ethereum/contract
+    name: Kyber Staking
+    network: {{network}}
+    source:
+      abi: KyberStaking
+      address: '{{kyberStakingAddress}}'
+      startBlock: {{kyberGovernanceStartBlock}}
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.4
+      language: wasm/assemblyscript
+      entities:
+        - Governance
+        - User
+      abis:
+        - name: KyberStaking
+          file: ./abi/IKyberStaking.json
+      eventHandlers:
+        - event: Deposited(uint256,indexed address,uint256)
+          handler: handleDeposit
+      file: ./src/mapping/staking.ts

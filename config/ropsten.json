@@ -1,5 +1,6 @@
 {
   "network": "ropsten",
   "kyberGovernanceAddress": "0xef5a1404e312078cd16b7139a2257ed3bb42f787",
+  "kyberStakingAddress": "0x6a345cdaba1b34cc74b877530cf28ad43b2bf2c7",
   "kyberGovernanceStartBlock": 9853106
 }
